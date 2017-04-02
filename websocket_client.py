@@ -5,7 +5,6 @@ import threading
 import websocket
 import time
 
-
 class WebSocketClient:
 
     def __init__(self, uri):
@@ -60,7 +59,7 @@ def closed_listener(ws):
     print "closed"
 
 if __name__ == '__main__':
-    client = WebSocketClient('ws://192.168.1.102:8080/websocket')
+    client = WebSocketClient('ws://localhost:8080/websocket')
     client.on_messaged = message_listener
     client.on_closed = closed_listener
     client.open()
