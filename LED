@@ -1,9 +1,11 @@
 #!/usr/bin/python
+# coding: utf-8
 # -*- coding: utf-8 -*-
 
 import threading
 import websocket
 import time
+
 
 class WebSocketClient:
 
@@ -51,20 +53,38 @@ class WebSocketClient:
         ''' 接続を閉じます。 '''
         self.ws.close()
 
-
+#messegeを受け取った時の処理
 def message_listener(ws, message):
     print message
+    #LEDpin16_ON
+    if message == "led16_on":
+        GPIO.output(16, True)
+    #LEDpin16_OFF
+    if message == "led16_off":
+        GPIO.output(16, False)
 
 def closed_listener(ws):
     print "closed"
 
 if __name__ == '__main__':
+    #raspberry PiのGPIOを使えるように
+    #import RPi.GPIO as GPIO
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(16, GPIO.OUT)
+    GPIO.setup(18, GPIO.OUT)
+
     client = WebSocketClient('ws://localhost:8080/websocket')
     client.on_messaged = message_listener
     client.on_closed = closed_listener
     client.open()
     client.send('hoge')
     while True:
-        time.sleep(1)
-        client.send("foo")
-    client.close()
+        # ctrl+cで終了した時のためにtry-exceptでGPIO.cleanupを実行するようにします。
+        try:
+            time.sleep(1)
+            client.send("foo")
+        except KeyboardInterrupt as ex:
+            print "closing"
+            #GPIOを開放
+            GPIO.cleanup()
+            raise ex
