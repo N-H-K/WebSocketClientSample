@@ -6,13 +6,6 @@ import threading
 import websocket
 import time
 
-#raspberry PiのGPIOを使えるように
-import RPi.GPIO as GPIO
-
-#Raspberry PI GPIO の初期化
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(16, GPIO.OUT)
-GPIO.setup(18, GPIO.OUT)
 
 class WebSocketClient:
 
@@ -74,15 +67,24 @@ def closed_listener(ws):
     print "closed"
 
 if __name__ == '__main__':
-        client = WebSocketClient('ws://192.168.1.102:8080/websocket')
-        client.on_messaged = message_listener
-        client.on_closed = closed_listener
-        client.open()
-        client.send('hoge')
-        while True:
+    #raspberry PiのGPIOを使えるように
+    #import RPi.GPIO as GPIO
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(16, GPIO.OUT)
+    GPIO.setup(18, GPIO.OUT)
+
+    client = WebSocketClient('ws://localhost:8080/websocket')
+    client.on_messaged = message_listener
+    client.on_closed = closed_listener
+    client.open()
+    client.send('hoge')
+    while True:
+        # ctrl+cで終了した時のためにtry-exceptでGPIO.cleanupを実行するようにします。
+        try:
             time.sleep(1)
             client.send("foo")
-            client.close()
-
-#GPIOを開放
-GPIO.cleanup()
+        except KeyboardInterrupt as ex:
+            print "closing"
+            #GPIOを開放
+            GPIO.cleanup()
+            raise ex
